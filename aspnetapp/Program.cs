@@ -1,39 +1,64 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
+using aspnetapp.Endpoints;
+using aspnetapp.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
 
-namespace aspnetapp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
 {
-    /// <summary>
-    /// Program class
-    /// </summary>
-    public class Program
+    options.ListenAnyIP(4999, listenOptions =>
+        listenOptions.Protocols = HttpProtocols.Http1);
+
+    options.ListenAnyIP(5000, listenOptions =>
+        listenOptions.Protocols = HttpProtocols.Http2);
+});
+
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
+builder.Services
+    .AddApiVersioning(options =>
     {
-        /// <summary>
-        /// The entry point of the application
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private static async Task Main(string[] args) =>
-            await CreateHostBuilder(args).Build().RunAsync();
+        options.ReportApiVersions = true;
+        options.AssumeDefaultVersionWhenUnspecified = true;
+    })
+    .AddApiExplorer(options =>
+    {
+        options.GroupNameFormat = "'v'VVV";
+        options.SubstituteApiVersionInUrl = true;
+    });
 
+builder.Services.AddOpenApi("v1", options => options.AddDocumentTransformer((document, _, _) =>
+{
+    document.Info = new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "Sample API",
+        Description = "A simple hybrid REST and gRPC service using ASP.NET Core (.NET 10)",
+        Contact = new OpenApiContact
+        {
+            Name = "Ben Chen",
+            Url = new Uri("https://www.linkedin.com/in/ben-jamin-chen/")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://github.com/bchen04/aspnetcore-grpc-rest/blob/master/LICENSE")
+        }
+    };
 
-        /// <summary>
-        /// Create and configure a builder object.
-        /// </summary>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => webBuilder.ConfigureKestrel(options =>
-                    {
-                        options.ListenAnyIP(4999, listenOptions => 
-                            listenOptions.Protocols = HttpProtocols.Http1);
+    return Task.CompletedTask;
+}));
 
-                        options.ListenAnyIP(5000, listenOptions => 
-                            listenOptions.Protocols = HttpProtocols.Http2);
-                    })
-                    .UseStartup<Startup>());
-    }
-}
+builder.Services.AddGrpc();
+builder.Services.AddScoped<IGreeterService, GreeterService>();
+
+var app = builder.Build();
+
+app.MapOpenApi();
+app.MapScalarApiReference();
+app.MapHello();
+app.MapGrpcService<GreeterService>();
+
+app.Run();

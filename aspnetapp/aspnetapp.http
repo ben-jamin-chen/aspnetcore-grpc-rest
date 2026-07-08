@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:4999
+
+### Say hello
+GET {{baseUrl}}/v1/hello/Ben
+
+### Say hello — missing name segment (404, route requires a name)
+GET {{baseUrl}}/v1/hello/
+
+### OpenAPI document
+GET {{baseUrl}}/openapi/v1.json

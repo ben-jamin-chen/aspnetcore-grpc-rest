@@ -3,10 +3,11 @@
     "aspnetapp": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "scalar",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:4999/swagger"
+      "applicationUrl": "http://localhost:4999"
     }
   }
 }

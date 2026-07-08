@@ -40,42 +40,26 @@ After the application starts, navigate to http://localhost:9000/scalar in your w
 
 > Note: The run command `-p` argument maps ports 9000 and 9001 on the local machine to ports 4999 and 5000 in the container (the form of the port mapping is `host:container`).
 
-## Build and run the sample with Minikube
+## Build and run the sample with Kubernetes (kind)
 
-If you want to run Kubernetes locally, you can spin up a whole cluster manually. Another solution is to use [minikube](https://kubernetes.io/docs/setup/minikube/). 
+Plain Docker Engine does not ship with Kubernetes, and Docker Desktop's bundled cluster is opt-in (Settings → Kubernetes), so this sample uses [kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker) to run a local cluster inside Docker containers. This document won't show you how to install [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
-You can build and run the sample locally with [minikube](https://kubernetes.io/docs/setup/minikube/). This document won't show you how to install [minikube](https://kubernetes.io/docs/setup/minikube/) or the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
-
-If this is your first time setting up `minikube`, the Docker daemon in `minikube` may not initally know about the Docker daemon in your host. You can share the context by running the following commmands:
+Create the cluster using the provided `config.yaml` (in the repository root). The config raises the API server's `service-node-port-range`, since the service pins nodePorts 4999 and 5000 below the default 30000–32767 range, and maps those ports to `localhost`:
 ```pwsh
->  minikube docker-env
->  SET DOCKER_TLS_VERIFY=1
->  SET DOCKER_HOST=tcp://172.17.13.216:2376
->  SET DOCKER_CERT_PATH=C:\Users\[USERNAME]\.minikube\certs
->  REM Run this command to configure your shell:
->  REM @FOR /f "tokens=*" %i IN ('minikube docker-env') DO @%i
+>  kind create cluster --config config.yaml
 ```
 
-`minikube` also provides a port range between 30000–32767 for services, so when a new service gets created a random port gets choosen. You can specify the nodePort range by running a similar command like this one below:
-```pwsh
->  minikube start --extra-config=apiserver.service-node-port-range=80-30000
-```
-
-> Note: To stop the local `minikube` cluster, run the command: `minikube stop`
-
-Next, build the docker image:
+Next, build the docker image and load it into the cluster. The deployment uses `imagePullPolicy: Never`, so the image must be preloaded onto the cluster nodes:
 ```pwsh
 >  docker build -t aspnetapp-k8s .
+>  kind load docker-image aspnetapp-k8s
 ```
 
-Create a service and a deployment:
+Create the deployment and service:
 ```pwsh
 >  cd aspnetapp
->  kubectl create -f service.yaml
->  kubectl create -f deployment.yaml
+>  kubectl apply -f deployment.yaml -f service.yaml
 ```
-
-> Note: To delete a service and deployment, you can run the following commands: `kubectl delete service aspnetapp-k8s` and `kubectl delete deployment aspnetapp-k8s`.
 
 Now check if the deployment succeeded:
 ```pwsh
@@ -87,17 +71,14 @@ You can also check the statuses of your pods:
 >  kubectl get pods
 ```
 
-To find out which IP and ports have been exposed, use this command (this is different when using managed k8s):
+> Note: The service is of type `LoadBalancer`, so its `EXTERNAL-IP` stays `<pending>` in a local kind cluster — that's expected. Traffic reaches the pods through the nodePorts mapped by `config.yaml`.
+
+Navigate to http://localhost:4999/scalar in your web browser to test the REST component.
+
+And again for the gRPC piece, you can use a gRPC client (i.e. [grpcurl](https://github.com/fullstorydev/grpcurl)) to connect to `localhost:5000`.
+
+To tear everything down, delete the resources and the cluster:
 ```pwsh
->  minikube service aspnetapp-k8s --url
+>  kubectl delete -f deployment.yaml -f service.yaml
+>  kind delete cluster
 ```
-
-You'll get an output similar to this:
-```pwsh
-http://192.168.99.100:4999
-http://192.168.99.100:5000
-```
-
-Navigate to http://192.168.99.100:4999/scalar in your web browser to test the REST component.
-
-And again for the gRPC piece, you can use a gRPC client (i.e. [BloomRPC](https://github.com/uw-labs/bloomrpc)) to connect to `192.168.99.100:5000`.

@@ -10,7 +10,7 @@ While looking at migrating existing APIs from REST to gRPC, I struggled to find 
 
 You can import the code straight into your preferred IDE (i.e. Visual Studio) or run the sample using the `dotnet` CLI commands (in the root project folder).
 
-```pwsh
+```powershell
 dotnet build
 dotnet .\aspnetapp\bin\Debug\net10.0\aspnetapp.dll
 ```
@@ -31,7 +31,7 @@ For the gRPC piece, you can install a gRPC client (i.e. [BloomRPC](https://githu
 
 You can build and run the sample in Docker using the following commands. Navigate to the folder where the Dockerfile lies.
 
-```pwsh
+```powershell
 docker build -t aspnetapp-k8s .
 docker run -it --rm -p 9000:4999 -p 9001:5000 --name aspnetcore-sample aspnetapp-k8s
 ```
@@ -45,29 +45,29 @@ After the application starts, navigate to http://localhost:9000/scalar in your w
 Plain Docker Engine does not ship with Kubernetes, and Docker Desktop's bundled cluster is opt-in (Settings → Kubernetes), so this sample uses [kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker) to run a local cluster inside Docker containers. This document won't show you how to install [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) or the command line tool [kubectl](https://kubernetes.io/docs/tasks/tools/).
 
 Create the cluster using the provided `config.yaml` (in the repository root). The config raises the API server's `service-node-port-range`, since the service pins nodePorts 4999 and 5000 below the default 30000–32767 range, and maps those ports to `localhost`:
-```pwsh
+```powershell
 kind create cluster --config config.yaml
 ```
 
 Next, build the docker image and load it into the cluster. The deployment uses `imagePullPolicy: Never`, so the image must be preloaded onto the cluster nodes:
-```pwsh
+```powershell
 docker build -t aspnetapp-k8s .
 kind load docker-image aspnetapp-k8s
 ```
 
 Create the deployment and service:
-```pwsh
+```powershell
 cd aspnetapp
 kubectl apply -f deployment.yaml -f service.yaml
 ```
 
 Now check if the deployment succeeded:
-```pwsh
+```powershell
 kubectl get deployments
 ```
 
 You can also check the statuses of your pods:
-```pwsh
+```powershell
 kubectl get pods
 ```
 
@@ -78,7 +78,7 @@ Navigate to http://localhost:4999/scalar in your web browser to test the REST co
 And again for the gRPC piece, you can use a gRPC client (i.e. [grpcurl](https://github.com/fullstorydev/grpcurl)) to connect to `localhost:5000`.
 
 To tear everything down, delete the resources and the cluster:
-```pwsh
+```powershell
 kubectl delete -f deployment.yaml -f service.yaml
 kind delete cluster
 ```

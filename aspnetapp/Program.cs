@@ -44,7 +44,7 @@ builder.Services.AddOpenApi("v1", options => options.AddDocumentTransformer((doc
         License = new OpenApiLicense
         {
             Name = "MIT License",
-            Url = new Uri("https://github.com/bchen04/aspnetcore-grpc-rest/blob/master/LICENSE")
+            Url = new Uri("https://github.com/ben-jamin-chen/aspnetcore-grpc-rest/blob/main/LICENSE")
         }
     };
 

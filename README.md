@@ -23,7 +23,7 @@ After the application runs, navigate to http://localhost:4999/scalar in your web
 }
 ```
 
-For the gRPC piece, you can install a gRPC client (i.e. [BloomRPC](https://github.com/uw-labs/bloomrpc)). Import the `greet.proto` file to the client and enter the server address as `localhost:5000`.
+For the gRPC piece, you can install a gRPC client (i.e. ~~BloomRPC~~). Import the `greet.proto` file to the client and enter the server address as `localhost:5000`.
 
 ![alt text](bloomrpc.png?raw=true "BloomRPC Example")
 
@@ -75,7 +75,7 @@ kubectl get pods
 
 Navigate to http://localhost:4999/scalar in your web browser to test the REST component.
 
-And again for the gRPC piece, you can use a gRPC client (i.e. [grpcurl](https://github.com/fullstorydev/grpcurl)) to connect to `localhost:5000`.
+And again for the gRPC piece, you can use a gRPC client (i.e. [Bruno](https://docs.usebruno.com/send-requests/grpc/grpc-request)) to connect to `localhost:5000`.
 
 To tear everything down, delete the resources and the cluster:
 ```powershell
